@@ -1,0 +1,59 @@
+#include <stdio.h>
+#include <string.h>
+
+#define V 7
+
+char *name[] = {
+    "Airport", "Guindy", "Saidapet", "Vadapalani",
+    "Central", "Koyambedu", "Egmore"
+};
+
+/* Compressed Sparse Row style adjacency */
+int start[] = {0, 1, 4, 6, 8, 10, 12, 13};
+int adj[]   = {
+    1,          /* Airport → Guindy */
+    0, 2, 3,    /* Guindy → Airport, Saidapet, Vadapalani */
+    1, 4,       /* Saidapet → Guindy, Central */
+    1, 5,       /* Vadapalani → Guindy, Koyambedu */
+    2, 6,       /* Central → Saidapet, Egmore */
+    3,          /* Koyambedu → Vadapalani */
+    4           /* Egmore → Central */
+};
+
+int main(void) {
+    int dist[V], parent[V], queue[V];
+    int head = 0, tail = 0;
+
+    for (int i = 0; i < V; i++) {
+        dist[i] = -1;
+        parent[i] = -1;
+    }
+
+    dist[0] = 0;
+    queue[tail++] = 0;
+
+    while (head < tail) {
+        int u = queue[head++];
+        printf("%s ", name[u]);
+        for (int i = start[u]; i < start[u + 1]; i++) {
+            int v = adj[i];
+            if (dist[v] == -1) {
+                dist[v] = dist[u] + 1;
+                parent[v] = u;
+                queue[tail++] = v;
+            }
+        }
+    }
+    printf("\n");
+
+    /* Reconstruct path to Koyambedu (vertex 5) */
+    int dest = 5;
+    printf("%s is %d stops away via: ", name[dest], dist[dest]);
+    int path[V], len = 0;
+    for (int v = dest; v != -1; v = parent[v])
+        path[len++] = v;
+    for (int i = len - 1; i >= 0; i--)
+        printf("%s%s", name[path[i]], i ? " " : "\n");
+
+    return 0;
+}
